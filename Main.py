@@ -6,6 +6,7 @@ Created on Jun 18, 2015
 import Web.APIs.ChicagoOpendata.ChicagoAPI as COD
 import shapefile
 import csv
+import time
 
 def setField_TT_by_Segment():
         w = shapefile.Writer(shapefile.POLYLINE)
@@ -62,6 +63,37 @@ def setInitialCSV(ttOutList, filepath):
         for item in ttOutList:
             writer.writerow({'SegmentID' : item[0], 'speed': item[11], 'update' : item[12]})
          
+def setAdditionalCSV(ttOutList, filepath):
+    existFile = open(filepath, 'rb')
+    readFile =  csv.reader(existFile)
+    
+    row0 = readFile.next()
+    
+    print(len(row0)/2)
+    
+    row0.append('speed'+str(len(row0)/2))
+    row0.append('update'+str(len(row0)/2-1))
+    print(row0)
+
+    all=[]
+    
+    for item1 in readFile:
+        for item2 in ttOutList:
+            if item2[0] == item1[0]:
+                item1.append(item2[11])
+                item1.append(item2[12])
+                break
+        print(item1)
+        all.append(item1)
+    
+    with open(filepath, 'wb') as output:
+        fieldnames = row0
+        writer = csv.writer(output, delimiter=',')
+        
+        writer.writerow(fieldnames)
+        for item3 in all:
+            writer.writerow(item3)
+    
 
 if __name__ == '__main__':
     
@@ -71,6 +103,25 @@ if __name__ == '__main__':
     
     setInitialValue(ttOut, 'result1')
     
-    setInitialCSV(ttOut, 'speed.csv')
+    isInitial =2
+    numOfTimes = 10
+    timeInterval = 5
+      
+    if isInitial == 1:
         
+        setInitialCSV(ttOut, 'speed.csv')
         
+    else:
+        numIndex = 0
+        while True:
+            ttOut = COD.TT_by_Segment()
+            
+            setAdditionalCSV(ttOut, 'speed.csv')
+            numIndex+=1
+            if numOfTimes > numIndex :
+                time.sleep(timeInterval * 60)
+            else:
+                break
+            
+        
+       
